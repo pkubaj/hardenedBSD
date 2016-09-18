@@ -148,7 +148,6 @@ __DEFAULT_YES_OPTIONS = \
     RADIUS_SUPPORT \
     RCMDS \
     RBOOTD \
-    RCS \
     RELRO \
     RESCUE \
     ROUTED \
@@ -193,7 +192,12 @@ __DEFAULT_NO_OPTIONS = \
     NAND \
     OFED \
     OPENLDAP \
+<<<<<<< HEAD
     PORTSNAP \
+=======
+    RCS \
+    SHARED_TOOLCHAIN \
+>>>>>>> origin/freebsd/current/master
     SORT_THREADS \
     SVN \
 
