@@ -442,6 +442,12 @@
       <para revision="286795">The &man.patch.1; utility has been
 	updated to remove the automatic checkout feature.</para>
 
+      <para revision="287197" contrib="sponsor"
+	sponsor="&netflix;, &nginx;">The wireless network stack has
+	been modified to no longer show physical wireless devices by
+	default.  In order to view available wireless devices on the
+	system, run <literal>sysctl net.wlan.devices</literal>.</para>
+
       <para revision="287473" contrib="sponsor" sponsor="&gandi;">A
 	new utility, &man.sesutil.8;, has been added, which is used
 	to manage &man.ses.4; (<acronym>SCSI</acronym> Environmental
@@ -507,7 +513,7 @@
       <para revision="278433">The &man.xz.1; utility has been updated
 	to support multi-threaded compression.</para>
 
-      <para revision="281373">The &man.nvi.1; utility and related
+      <para revision="281373">The &man.nvi.1; editor and related
 	utilities have been updated to version 2.1.3.</para>
 
       <para revision="281806">The &man.wpa.supplicant.8; and
@@ -939,7 +945,8 @@
       <para revision="266531">The <literal>IMAGACT_BINMISC</literal>
 	kernel configuration option has been enabled by default,
 	which enables application execution through emulators, such
-	as <application>QEMU</application>.</para>
+	as <application>QEMU</application> via
+	&man.binmiscctl.8;.</para>
 
       <para revision="268045">The <literal>VT</literal> kernel
 	configuration file has been removed, and the &man.vt.4;
@@ -1329,7 +1336,7 @@
 	updated to support Solarflare Flareon Ultra 7000-series
 	chipsets.</para>
 
-      <para revision="283766" contrib="sponsor"
+      <para revision="283923" contrib="sponsor"
 	sponsor="&limelight;">The &man.em.4; driver has been updated
 	with improved transmission queue hang detection.</para>
 
