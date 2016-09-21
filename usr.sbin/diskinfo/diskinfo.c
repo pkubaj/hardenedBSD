@@ -42,6 +42,7 @@
 #include <err.h>
 #include <sys/disk.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 
 static void
@@ -61,6 +62,7 @@ static int zonecheck(int fd, uint32_t *zone_mode, char *zone_str,
 int
 main(int argc, char **argv)
 {
+	struct stat sb;
 	int i, ch, fd, error, exitval = 0;
 	char buf[BUFSIZ], ident[DISK_IDENT_SIZE], physpath[MAXPATHLEN];
 	char zone_desc[64];
@@ -92,7 +94,7 @@ main(int argc, char **argv)
 		usage();
 
 	for (i = 0; i < argc; i++) {
-		fd = open(argv[i], O_RDONLY);
+		fd = open(argv[i], O_RDONLY | O_DIRECT);
 		if (fd < 0 && errno == ENOENT && *argv[i] != '/') {
 			sprintf(buf, "%s%s", _PATH_DEV, argv[i]);
 			fd = open(buf, O_RDONLY);
@@ -102,33 +104,48 @@ main(int argc, char **argv)
 			exitval = 1;
 			goto out;
 		}
-		error = ioctl(fd, DIOCGMEDIASIZE, &mediasize);
-		if (error) {
-			warnx("%s: ioctl(DIOCGMEDIASIZE) failed, probably not a disk.", argv[i]);
+		error = fstat(fd, &sb);
+		if (error != 0) {
+			warn("cannot stat %s", argv[i]);
 			exitval = 1;
 			goto out;
 		}
-		error = ioctl(fd, DIOCGSECTORSIZE, &sectorsize);
-		if (error) {
-			warnx("%s: ioctl(DIOCGSECTORSIZE) failed, probably not a disk.", argv[i]);
-			exitval = 1;
-			goto out;
-		}
-		error = ioctl(fd, DIOCGFWSECTORS, &fwsectors);
-		if (error)
+		if (S_ISREG(sb.st_mode)) {
+			mediasize = sb.st_size;
+			sectorsize = S_BLKSIZE;
 			fwsectors = 0;
-		error = ioctl(fd, DIOCGFWHEADS, &fwheads);
-		if (error)
 			fwheads = 0;
-		error = ioctl(fd, DIOCGSTRIPESIZE, &stripesize);
-		if (error)
-			stripesize = 0;
-		error = ioctl(fd, DIOCGSTRIPEOFFSET, &stripeoffset);
-		if (error)
+			stripesize = sb.st_blksize;
 			stripeoffset = 0;
-		error = zonecheck(fd, &zone_mode, zone_desc, sizeof(zone_desc));
-		if (error == 0)
-			zoned = 1;
+		} else {
+			error = ioctl(fd, DIOCGMEDIASIZE, &mediasize);
+			if (error) {
+				warnx("%s: ioctl(DIOCGMEDIASIZE) failed, probably not a disk.", argv[i]);
+				exitval = 1;
+				goto out;
+			}
+			error = ioctl(fd, DIOCGSECTORSIZE, &sectorsize);
+			if (error) {
+				warnx("%s: ioctl(DIOCGSECTORSIZE) failed, probably not a disk.", argv[i]);
+				exitval = 1;
+				goto out;
+			}
+			error = ioctl(fd, DIOCGFWSECTORS, &fwsectors);
+			if (error)
+				fwsectors = 0;
+			error = ioctl(fd, DIOCGFWHEADS, &fwheads);
+			if (error)
+				fwheads = 0;
+			error = ioctl(fd, DIOCGSTRIPESIZE, &stripesize);
+			if (error)
+				stripesize = 0;
+			error = ioctl(fd, DIOCGSTRIPEOFFSET, &stripeoffset);
+			if (error)
+				stripeoffset = 0;
+			error = zonecheck(fd, &zone_mode, zone_desc, sizeof(zone_desc));
+			if (error == 0)
+				zoned = 1;
+		}
 		if (!opt_v) {
 			printf("%s", argv[i]);
 			printf("\t%u", sectorsize);
@@ -220,14 +237,24 @@ T0(void)
 	gettimeofday(&tv1, NULL);
 }
 
-static void
-TN(int count)
+static double
+delta_t(void)
 {
 	double dt;
 
 	gettimeofday(&tv2, NULL);
 	dt = (tv2.tv_usec - tv1.tv_usec) / 1e6;
 	dt += (tv2.tv_sec - tv1.tv_sec);
+
+	return (dt);
+}
+
+static void
+TN(int count)
+{
+	double dt;
+
+	dt = delta_t();
 	printf("%5d iter in %10.6f sec = %8.3f msec\n",
 		count, dt, dt * 1000.0 / count);
 }
@@ -237,9 +264,7 @@ TR(double count)
 {
 	double dt;
 
-	gettimeofday(&tv2, NULL);
-	dt = (tv2.tv_usec - tv1.tv_usec) / 1e6;
-	dt += (tv2.tv_sec - tv1.tv_sec);
+	dt = delta_t();
 	printf("%8.0f kbytes in %10.6f sec = %8.0f kbytes/sec\n",
 		count, dt, count / dt);
 }
@@ -330,7 +355,7 @@ speeddisk(int fd, off_t mediasize, u_int sectorsize)
 	}
 	TN(2048);
 
-	printf("Transfer rates:\n");
+	printf("\nTransfer rates:\n");
 	printf("\toutside:     ");
 	rdsect(fd, 0, sectorsize);
 	T0();
@@ -373,9 +398,7 @@ commandtime(int fd, off_t mediasize, u_int sectorsize)
 	T0();
 	for (i = 0; i < 10; i++)
 		rdmega(fd);
-	gettimeofday(&tv2, NULL);
-	dtmega = (tv2.tv_usec - tv1.tv_usec) / 1e6;
-	dtmega += (tv2.tv_sec - tv1.tv_sec);
+	dtmega = delta_t();
 
 	printf("\ttime to read 10MB block    %10.6f sec\t= %8.3f msec/sector\n",
 		dtmega, dtmega*100/2048);
@@ -384,9 +407,7 @@ commandtime(int fd, off_t mediasize, u_int sectorsize)
 	T0();
 	for (i = 0; i < 20480; i++)
 		rdsect(fd, 0, sectorsize);
-	gettimeofday(&tv2, NULL);
-	dtsector = (tv2.tv_usec - tv1.tv_usec) / 1e6;
-	dtsector += (tv2.tv_sec - tv1.tv_sec);
+	dtsector = delta_t();
 
 	printf("\ttime to read 20480 sectors %10.6f sec\t= %8.3f msec/sector\n",
 		dtsector, dtsector*100/2048);
