@@ -454,9 +454,10 @@ taskqueue_drain_all(struct taskqueue *queue)
 
 	TQ_LOCK(queue);
 	task = STAILQ_LAST(&queue->tq_queue, task, ta_link);
-	if (task != NULL)
-		while (task->ta_pending != 0)
-			TQ_SLEEP(queue, task, &queue->tq_mutex, PWAIT, "-", 0);
+	while (task != NULL && task->ta_pending != 0) {
+		TQ_SLEEP(queue, task, &queue->tq_mutex, PWAIT, "-", 0);
+		task = STAILQ_LAST(&queue->tq_queue, task, ta_link);
+	}
 	taskqueue_drain_running(queue);
 	KASSERT(STAILQ_EMPTY(&queue->tq_queue),
 	    ("taskqueue queue is not empty after draining"));
