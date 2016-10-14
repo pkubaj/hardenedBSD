@@ -460,10 +460,6 @@ taskqueue_drain_all(struct taskqueue *queue)
 	TQ_LOCK(queue);
 	task = STAILQ_LAST(&queue->tq_queue, task, ta_link);
 	while (task != NULL && task->ta_pending != 0) {
-<<<<<<< HEAD
-		TQ_SLEEP(queue, task, &queue->tq_mutex, PWAIT, "-", 0);
-		task = STAILQ_LAST(&queue->tq_queue, task, ta_link);
-=======
 		struct task *oldtask;
 		TQ_SLEEP(queue, task, &queue->tq_mutex, PWAIT, "-", 0);
 		/*
@@ -482,7 +478,6 @@ taskqueue_drain_all(struct taskqueue *queue)
 					break;
 			}
 		}
->>>>>>> origin/hardened/10-stable/master
 	}
 	taskqueue_drain_running(queue);
 	KASSERT(STAILQ_EMPTY(&queue->tq_queue),
