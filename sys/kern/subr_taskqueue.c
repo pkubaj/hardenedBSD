@@ -75,6 +75,7 @@ struct taskqueue {
 #define	TQ_FLAGS_UNLOCKED_ENQUEUE	(1 << 2)
 
 #define	DT_CALLOUT_ARMED	(1 << 0)
+#define	DT_DRAIN_IN_PROGRESS	(1 << 1)
 
 #define	TQ_LOCK(tq)							\
 	do {								\
@@ -279,7 +280,11 @@ taskqueue_enqueue_timeout(struct taskqueue *queue,
 	KASSERT(!queue->tq_spin, ("Timeout for spin-queue"));
 	timeout_task->q = queue;
 	res = timeout_task->t.ta_pending;
-	if (ticks == 0) {
+	if (timeout_task->f & DT_DRAIN_IN_PROGRESS) {
+		/* Do nothing */
+		TQ_UNLOCK(queue);
+		res = -1;
+	} else if (ticks == 0) {
 		taskqueue_enqueue_locked(queue, &timeout_task->t);
 		/* The lock is released inside. */
 	} else {
@@ -455,8 +460,29 @@ taskqueue_drain_all(struct taskqueue *queue)
 	TQ_LOCK(queue);
 	task = STAILQ_LAST(&queue->tq_queue, task, ta_link);
 	while (task != NULL && task->ta_pending != 0) {
+<<<<<<< HEAD
 		TQ_SLEEP(queue, task, &queue->tq_mutex, PWAIT, "-", 0);
 		task = STAILQ_LAST(&queue->tq_queue, task, ta_link);
+=======
+		struct task *oldtask;
+		TQ_SLEEP(queue, task, &queue->tq_mutex, PWAIT, "-", 0);
+		/*
+		 * While we were asleeep the last entry may have been freed.
+		 * We need to check if it's still even in the queue.
+		 * Not perfect, but it's better than referencing bad memory.
+		 * first guess is the current 'end of queue' but if a new
+		 * item has been added we need to take the expensive path
+		 * Better fix in 11.
+		 */
+		oldtask = task;
+		if (oldtask !=
+		    (task = STAILQ_LAST(&queue->tq_queue, task, ta_link))) {
+			STAILQ_FOREACH(task, &queue->tq_queue, ta_link) {
+				if (task == oldtask)
+					break;
+			}
+		}
+>>>>>>> origin/hardened/10-stable/master
 	}
 	taskqueue_drain_running(queue);
 	KASSERT(STAILQ_EMPTY(&queue->tq_queue),
@@ -469,8 +495,24 @@ taskqueue_drain_timeout(struct taskqueue *queue,
     struct timeout_task *timeout_task)
 {
 
+	/*
+	 * Set flag to prevent timer from re-starting during drain:
+	 */
+	TQ_LOCK(queue);
+	KASSERT((timeout_task->f & DT_DRAIN_IN_PROGRESS) == 0,
+	    ("Drain already in progress"));
+	timeout_task->f |= DT_DRAIN_IN_PROGRESS;
+	TQ_UNLOCK(queue);
+
 	callout_drain(&timeout_task->c);
 	taskqueue_drain(queue, &timeout_task->t);
+
+	/*
+	 * Clear flag to allow timer to re-start:
+	 */
+	TQ_LOCK(queue);
+	timeout_task->f &= ~DT_DRAIN_IN_PROGRESS;
+	TQ_UNLOCK(queue);
 }
 
 static void
