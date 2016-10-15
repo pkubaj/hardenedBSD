@@ -260,6 +260,11 @@ __DEFAULT_YES_OPTIONS+=LLD LLDB
 .else
 __DEFAULT_NO_OPTIONS+=LLD LLDB
 .endif
+.if ${__T} == "aarch64"
+__DEFAULT_YES_OPTIONS+=LLD_IS_LD
+.else
+__DEFAULT_NO_OPTIONS+=LLD_IS_LD
+.endif
 # LLVM lacks support for FreeBSD 64-bit atomic operations for ARMv4/ARMv5
 .if ${__T} == "arm" || ${__T} == "armeb"
 BROKEN_OPTIONS+=LLDB
@@ -396,6 +401,11 @@ MK_LLDB:=	no
 .if ${MK_CLANG} == "no"
 MK_CLANG_EXTRAS:= no
 MK_CLANG_FULL:= no
+MK_LLD_IS_LD:=	no
+.endif
+
+.if ${MK_LLD_IS_LD} != "no"
+MK_TESTS:=	no
 .endif
 
 #

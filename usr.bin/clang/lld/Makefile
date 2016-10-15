@@ -1,5 +1,7 @@
 # $FreeBSD$
 
+.include <src.opts.mk>
+
 LLVM_SRCS=	${SRCTOP}/contrib/llvm
 LLD_SRCS=	${LLVM_SRCS}/tools/lld
 
@@ -41,6 +43,10 @@ SRCS+=		lib/Core/Resolver.cpp
 SRCS+=		lib/Core/SymbolTable.cpp
 SRCS+=		lib/Core/Writer.cpp
 SRCS+=		tools/lld/lld.cpp
+
+.if ${MK_LLD_IS_LD} != "no"
+LINKS=		${BINDIR}/ld.lld ${BINDIR}/ld
+.endif
 
 .include "${SRCTOP}/lib/clang/llvm.build.mk"
 
