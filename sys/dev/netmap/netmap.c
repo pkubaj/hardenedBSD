@@ -483,7 +483,6 @@ static int netmap_no_timestamp; /* don't timestamp on rxsync */
 int netmap_mitigate = 1;
 int netmap_no_pendintr = 1;
 int netmap_txsync_retry = 2;
-int netmap_adaptive_io = 0;
 int netmap_flags = 0;	/* debug flags */
 static int netmap_fwd = 0;	/* force transparent mode */
 
@@ -540,8 +539,6 @@ SYSCTL_INT(_dev_netmap, OID_AUTO, no_pendintr,
     CTLFLAG_RW, &netmap_no_pendintr, 0, "Always look for new received packets.");
 SYSCTL_INT(_dev_netmap, OID_AUTO, txsync_retry, CTLFLAG_RW,
     &netmap_txsync_retry, 0 , "Number of txsync loops in bridge's flush.");
-SYSCTL_INT(_dev_netmap, OID_AUTO, adaptive_io, CTLFLAG_RW,
-    &netmap_adaptive_io, 0 , "Adaptive I/O on paravirt");
 
 SYSCTL_INT(_dev_netmap, OID_AUTO, flags, CTLFLAG_RW, &netmap_flags, 0 , "");
 SYSCTL_INT(_dev_netmap, OID_AUTO, fwd, CTLFLAG_RW, &netmap_fwd, 0 , "");
@@ -1559,7 +1556,7 @@ nm_txsync_prologue(struct netmap_kring *kring, struct netmap_ring *ring)
 		}
 	}
 	if (ring->tail != kring->rtail) {
-		RD(5, "tail overwritten was %d need %d",
+		RD(5, "%s tail overwritten was %d need %d", kring->name,
 			ring->tail, kring->rtail);
 		ring->tail = kring->rtail;
 	}
@@ -2189,7 +2186,11 @@ netmap_ioctl(struct netmap_priv_d *priv, u_long cmd, caddr_t data, struct thread
 		break;
 
 	case NIOCREGIF:
-		/* possibly attach/detach NIC and VALE switch */
+		/*
+		 * If nmr->nr_cmd is not zero, this NIOCREGIF is not really
+		 * a regif operation, but a different one, specified by the
+		 * value of nmr->nr_cmd.
+		 */
 		i = nmr->nr_cmd;
 		if (i == NETMAP_BDG_ATTACH || i == NETMAP_BDG_DETACH
 				|| i == NETMAP_BDG_VNET_HDR
@@ -2197,12 +2198,15 @@ netmap_ioctl(struct netmap_priv_d *priv, u_long cmd, caddr_t data, struct thread
 				|| i == NETMAP_BDG_DELIF
 				|| i == NETMAP_BDG_POLLING_ON
 				|| i == NETMAP_BDG_POLLING_OFF) {
+			/* possibly attach/detach NIC and VALE switch */
 			error = netmap_bdg_ctl(nmr, NULL);
 			break;
 		} else if (i == NETMAP_PT_HOST_CREATE || i == NETMAP_PT_HOST_DELETE) {
+			/* forward the command to the ptnetmap subsystem */
 			error = ptnetmap_ctl(nmr, priv->np_na);
 			break;
 		} else if (i == NETMAP_VNET_HDR_GET) {
+			/* get vnet-header length for this netmap port */
 			struct ifnet *ifp;
 
 			NMG_LOCK();
@@ -2212,6 +2216,10 @@ netmap_ioctl(struct netmap_priv_d *priv, u_long cmd, caddr_t data, struct thread
 			}
 			netmap_unget_na(na, ifp);
 			NMG_UNLOCK();
+			break;
+		} else if (i == NETMAP_POOLS_INFO_GET) {
+			/* get information from the memory allocator */
+			error = netmap_mem_pools_info_get(nmr, priv->np_na);
 			break;
 		} else if (i != 0) {
 			D("nr_cmd must be 0 not %d", i);
@@ -2876,17 +2884,15 @@ netmap_attach(struct netmap_adapter *arg)
 
 #ifdef WITH_PTNETMAP_GUEST
 int
-netmap_pt_guest_attach(struct netmap_adapter *arg,
-		       void *csb,
-		       unsigned int nifp_offset,
-		       nm_pt_guest_ptctl_t ptctl)
+netmap_pt_guest_attach(struct netmap_adapter *arg, void *csb,
+		       unsigned int nifp_offset, unsigned int memid)
 {
 	struct netmap_pt_guest_adapter *ptna;
 	struct ifnet *ifp = arg ? arg->ifp : NULL;
 	int error;
 
 	/* get allocator */
-	arg->nm_mem = netmap_mem_pt_guest_new(ifp, nifp_offset, ptctl);
+	arg->nm_mem = netmap_mem_pt_guest_new(ifp, nifp_offset, memid);
 	if (arg->nm_mem == NULL)
 		return ENOMEM;
 	arg->na_flags |= NAF_MEM_OWNER;
