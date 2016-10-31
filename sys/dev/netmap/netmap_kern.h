@@ -73,6 +73,7 @@
 #endif
 
 #if defined(__FreeBSD__)
+#include <sys/selinfo.h>
 
 #define likely(x)	__builtin_expect((long)!!(x), 1L)
 #define unlikely(x)	__builtin_expect((long)!!(x), 0L)
@@ -1511,9 +1512,9 @@ int netmap_adapter_put(struct netmap_adapter *na);
  */
 #define NETMAP_BUF_BASE(_na)	((_na)->na_lut.lut[0].vaddr)
 #define NETMAP_BUF_SIZE(_na)	((_na)->na_lut.objsize)
-extern int netmap_mitigate;	// XXX not really used
 extern int netmap_no_pendintr;
-extern int netmap_verbose;	// XXX debugging
+extern int netmap_mitigate;
+extern int netmap_verbose;		/* for debugging */
 enum {                                  /* verbose flags */
 	NM_VERB_ON = 1,                 /* generic verbose */
 	NM_VERB_HOST = 0x2,             /* verbose host stack */
@@ -1526,7 +1527,6 @@ enum {                                  /* verbose flags */
 };
 
 extern int netmap_txsync_retry;
-extern int netmap_adaptive_io;
 extern int netmap_flags;
 extern int netmap_generic_mit;
 extern int netmap_generic_ringsize;
@@ -2009,13 +2009,14 @@ typedef void (*nm_kthread_worker_fn_t)(void *data);
 /* kthread configuration */
 struct nm_kthread_cfg {
 	long				type;		/* kthread type/identifier */
-	struct ptnet_ring_cfg		event;		/* event/ioctl fd */
 	nm_kthread_worker_fn_t		worker_fn;	/* worker function */
 	void				*worker_private;/* worker parameter */
 	int				attach_user;	/* attach kthread to user process */
 };
 /* kthread configuration */
-struct nm_kthread *nm_os_kthread_create(struct nm_kthread_cfg *cfg);
+struct nm_kthread *nm_os_kthread_create(struct nm_kthread_cfg *cfg,
+					unsigned int cfgtype,
+					void *opaque);
 int nm_os_kthread_start(struct nm_kthread *);
 void nm_os_kthread_stop(struct nm_kthread *);
 void nm_os_kthread_delete(struct nm_kthread *);
@@ -2053,8 +2054,6 @@ nm_ptnetmap_host_on(struct netmap_adapter *na)
 #ifdef WITH_PTNETMAP_GUEST
 /* ptnetmap GUEST routines */
 
-typedef uint32_t (*nm_pt_guest_ptctl_t)(struct ifnet *, uint32_t);
-
 /*
  * netmap adapter for guest ptnetmap ports
  */
@@ -2076,8 +2075,8 @@ struct netmap_pt_guest_adapter {
 
 };
 
-int netmap_pt_guest_attach(struct netmap_adapter *, void *,
-			   unsigned int, nm_pt_guest_ptctl_t);
+int netmap_pt_guest_attach(struct netmap_adapter *na, void *csb,
+			   unsigned int nifp_offset, unsigned int memid);
 struct ptnet_ring;
 bool netmap_pt_guest_txsync(struct ptnet_ring *ptring, struct netmap_kring *kring,
 			    int flags);
