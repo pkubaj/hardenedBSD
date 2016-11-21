@@ -1,6 +1,9 @@
 /*-
- * Copyright (c) 2002 Mitsuru IWASAKI
+ * Copyright (c) 2016 The FreeBSD Foundation
  * All rights reserved.
+ *
+ * This software was developed by Andrew Turner under
+ * sponsorship from the FreeBSD Foundation.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,10 +14,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -26,37 +29,27 @@
  * $FreeBSD$
  */
 
-/******************************************************************************
- *
- * Name: acpica_machdep.h - arch-specific defines, etc.
- *       $Revision$
- *
- *****************************************************************************/
+#ifndef _ARMV8_CRYPTO_H_
+#define _ARMV8_CRYPTO_H_
 
-#ifndef __ACPICA_MACHDEP_H__
-#define	__ACPICA_MACHDEP_H__
+#define	AES128_ROUNDS	10
+#define	AES192_ROUNDS	12
+#define	AES256_ROUNDS	14
+#define	AES_SCHED_LEN	((AES256_ROUNDS + 1) * AES_BLOCK_LEN)
 
+struct armv8_crypto_session {
+	uint32_t enc_schedule[AES_SCHED_LEN/4];
+	uint32_t dec_schedule[AES_SCHED_LEN/4];
+	int algo;
+	int rounds;
+	int used;
+	uint32_t id;
+	TAILQ_ENTRY(armv8_crypto_session) next;
+};
 
-#ifdef _KERNEL
+void armv8_aes_encrypt_cbc(int, const void *, size_t, const uint8_t *,
+    uint8_t *, const uint8_t[static AES_BLOCK_LEN]);
+void armv8_aes_decrypt_cbc(int, const void *, size_t, uint8_t *,
+    const uint8_t[static AES_BLOCK_LEN]);
 
-#include <machine/_bus.h>
-
-/* Only use the reduced hardware model */
-#define	ACPI_REDUCED_HARDWARE	1
-
-/* Section 5.2.10.1: global lock acquire/release functions */
-int	acpi_acquire_global_lock(volatile uint32_t *);
-int	acpi_release_global_lock(volatile uint32_t *);
-
-void	*acpi_map_table(vm_paddr_t pa, const char *sig);
-void	acpi_unmap_table(void *table);
-vm_paddr_t acpi_find_table(const char *sig);
-
-struct acpi_generic_address;
-
-int	acpi_map_addr(struct acpi_generic_address  *, bus_space_tag_t *,
-    bus_space_handle_t *, bus_size_t);
-
-#endif /* _KERNEL */
-
-#endif /* __ACPICA_MACHDEP_H__ */
+#endif /* _ARMV8_CRYPTO_H_ */
