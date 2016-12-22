@@ -353,7 +353,6 @@ pax_segvguard_add(struct thread *td, struct vnode *vn, sbintime_t sbt)
 {
 	struct pax_segvguard_entry *se;
 	struct prison *pr;
-<<<<<<< HEAD
 	struct vattr vat;
 	int error;
 
@@ -366,17 +365,6 @@ pax_segvguard_add(struct thread *td, struct vnode *vn, sbintime_t sbt)
 			free(se, M_PAX);
 			return (NULL);
 		}
-=======
-	struct vattr vap;
-	int error;
-
-	memset(&vap, 0x00, sizeof(vap));
-
-	error = VOP_GETATTR(vn, &vap, td->td_ucred);
-	if (error != 0) {
-		pax_log_segvguard(td->td_proc, PAX_LOG_DEFAULT,
-		    "%s:%d stat error. Bailing.", __func__, __LINE__);
->>>>>>> origin/hardened/current/master
 
 		error = VOP_GETATTR(vn, &vat, td->td_ucred);
 		strncpy(se->se_mntpoint, vn->v_mount->mnt_stat.f_mntonname, MNAMELEN);
@@ -399,12 +387,7 @@ pax_segvguard_add(struct thread *td, struct vnode *vn, sbintime_t sbt)
 	se->se_uid = td->td_ucred->cr_ruid;
 	se->se_ncrashes = 1;
 
-<<<<<<< HEAD
 	callout_init_mtx(&se->se_callout, &PAX_SEGVGUARD_BUCKET(se)->bucket_mtx, 0);
-=======
-	v->se_inode = vap.va_fileid;
-	strncpy(v->se_mntpoint, vn->v_mount->mnt_stat.f_mntonname, MNAMELEN);
->>>>>>> origin/hardened/current/master
 
 	PAX_SEGVGUARD_LOCK(se);
 	LIST_INSERT_HEAD(PAX_SEGVGUARD_BUCKET(se), se, se_entry);
@@ -419,7 +402,6 @@ pax_segvguard_add(struct thread *td, struct vnode *vn, sbintime_t sbt)
 static struct pax_segvguard_entry *
 pax_segvguard_lookup(struct thread *td, struct vnode *vn)
 {
-<<<<<<< HEAD
 	struct pax_segvguard_entry *se, sekey;
 	struct vattr vat;
 	int error;
@@ -437,24 +419,12 @@ pax_segvguard_lookup(struct thread *td, struct vnode *vn)
 	}
 
 	if (error) {
-=======
-	struct pax_segvguard_entry *v;
-	struct pax_segvguard_key sk;
-	struct vattr vap;
-	int error;
-
-	memset(&vap, 0x00, sizeof(vap));
-
-	error = VOP_GETATTR(vn, &vap, td->td_ucred);
-	if (error != 0) {
->>>>>>> origin/hardened/current/master
 		pax_log_segvguard(td->td_proc, PAX_LOG_DEFAULT,
 		    "%s:%d VOP_GETATTR error. Bailing.", __func__, __LINE__);
 
 		return (NULL);
 	}
 
-<<<<<<< HEAD
 	sekey.se_inode = vat.va_fileid;
 	sekey.se_uid = td->td_ucred->cr_ruid;
 
@@ -463,18 +433,6 @@ pax_segvguard_lookup(struct thread *td, struct vnode *vn)
 		if (se->se_inode == vat.va_fileid &&
 		    !strncmp(sekey.se_mntpoint, se->se_mntpoint, MNAMELEN) &&
 		    td->td_ucred->cr_ruid == se->se_uid) {
-=======
-	sk.se_inode = vap.va_fileid;
-	strncpy(sk.se_mntpoint, vn->v_mount->mnt_stat.f_mntonname, MNAMELEN);
-	sk.se_uid = td->td_ucred->cr_ruid;
-
-	PAX_SEGVGUARD_LOCK(PAX_SEGVGUARD_HASH(sk));
-	LIST_FOREACH(v, PAX_SEGVGUARD_HASH(sk), se_entry) {
-		if (v->se_inode == vap.va_fileid &&
-		    !strncmp(sk.se_mntpoint, v->se_mntpoint, MNAMELEN) &&
-		    td->td_ucred->cr_ruid == v->se_uid) {
-			PAX_SEGVGUARD_UNLOCK(PAX_SEGVGUARD_HASH(sk));
->>>>>>> origin/hardened/current/master
 
 			return (se);
 		}
@@ -492,11 +450,7 @@ pax_segvguard_segfault(struct thread *td, const char *name)
 	struct vnode *v;
 	sbintime_t sbt;
 
-<<<<<<< HEAD
 	if (pax_segvguard_active_td(td) == false)
-=======
-	if (pax_segvguard_active(td->td_proc) == false)
->>>>>>> origin/hardened/current/master
 		return (0);
 
 	v = td->td_proc->p_textvp;
@@ -539,16 +493,10 @@ pax_segvguard_check(struct thread *td, struct vnode *v, const char *name)
 	struct pax_segvguard_entry *se;
 	sbintime_t sbt;
 
-<<<<<<< HEAD
 	if (pax_segvguard_active_td(td) == false)
 		return (0);
 
 
-=======
-	if (pax_segvguard_active(td->td_proc) == false)
-		return (0);
-
->>>>>>> origin/hardened/current/master
 	if (v == NULL)
 		return (EFAULT);
 
