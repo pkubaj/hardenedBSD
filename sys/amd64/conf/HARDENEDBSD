@@ -381,7 +381,6 @@ device		netmap			# netmap(4) support
 # The crypto framework is required by IPSEC
 device		crypto			# Required by IPSEC
 
-<<<<<<< HEAD
 # Additonal devices
 device		coretemp
 device		cpuctl
@@ -393,10 +392,3 @@ options        IPFIREWALL_VERBOSE
 options        IPFIREWALL_VERBOSE_LIMIT=100
 
 device		bvmconsole		# for kgdb over bhyve
-=======
-# Other nice stuffs.
-device		aesni			# Accelerated AES on Intel CPUs
-device		coretemp		# CPU temperature sensors
-device		cpuctl			# for CPU microcode updates
-device		cryptodev		# /dev/crypto for access to Hardware
->>>>>>> origin/hardened/11-stable/master
