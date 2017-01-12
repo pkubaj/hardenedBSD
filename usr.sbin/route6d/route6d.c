@@ -684,6 +684,7 @@ init(void)
 		/*NOTREACHED*/
 	}
 #endif
+	freeaddrinfo(res);
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = PF_INET6;
@@ -699,6 +700,7 @@ init(void)
 		/*NOTREACHED*/
 	}
 	memcpy(&ripsin, res->ai_addr, res->ai_addrlen);
+	freeaddrinfo(res);
 
 #ifdef HAVE_POLL_H
 	set[0].fd = ripsock;
@@ -788,10 +790,17 @@ ripflush(struct ifc *ifcp, struct sockaddr_in6 *sin6, int nrt, struct netinfo6 *
 	error = sendpacket(sin6, RIPSIZE(nrt));
 	if (error == EAFNOSUPPORT) {
 		/* Protocol not supported */
-		tracet(1, "Could not send info to %s (%s): "
-			"set IFF_UP to 0\n",
-			ifcp->ifc_name, inet6_n2p(&ifcp->ifc_ripsin.sin6_addr));
-		ifcp->ifc_flags &= ~IFF_UP;	/* As if down for AF_INET6 */
+		if (ifcp != NULL) {
+			tracet(1, "Could not send info to %s (%s): "
+			    "set IFF_UP to 0\n",
+			    ifcp->ifc_name,
+			    inet6_n2p(&ifcp->ifc_ripsin.sin6_addr));
+			/* As if down for AF_INET6 */
+			ifcp->ifc_flags &= ~IFF_UP;
+		} else {
+			tracet(1, "Could not send info to %s\n",
+			    inet6_n2p(&sin6->sin6_addr));
+		}
 	}
 }
 
@@ -1062,6 +1071,7 @@ sendpacket(struct sockaddr_in6 *sin6, int len)
 	iov[0].iov_len = len;
 	m.msg_iov = iov;
 	m.msg_iovlen = 1;
+	m.msg_flags = 0;
 	if (!idx) {
 		m.msg_control = NULL;
 		m.msg_controllen = 0;
@@ -1126,6 +1136,7 @@ riprecv(void)
 	cm = (struct cmsghdr *)cmsgbuf;
 	m.msg_control = (caddr_t)cm;
 	m.msg_controllen = sizeof(cmsgbuf);
+	m.msg_flags = 0;
 	if ((len = recvmsg(ripsock, &m, 0)) < 0) {
 		fatal("recvmsg");
 		/*NOTREACHED*/
