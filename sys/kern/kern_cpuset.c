@@ -1081,6 +1081,15 @@ struct cpuset_getaffinity_args {
 int
 sys_cpuset_getaffinity(struct thread *td, struct cpuset_getaffinity_args *uap)
 {
+
+	return (kern_cpuset_getaffinity(td, uap->level, uap->which,
+	    uap->id, uap->cpusetsize, uap->mask));
+}
+
+int
+kern_cpuset_getaffinity(struct thread *td, cpulevel_t level, cpuwhich_t which,
+    id_t id, size_t cpusetsize, cpuset_t *maskp)
+{
 	struct thread *ttd;
 	struct cpuset *nset;
 	struct cpuset *set;
@@ -1089,18 +1098,17 @@ sys_cpuset_getaffinity(struct thread *td, struct cpuset_getaffinity_args *uap)
 	int error;
 	size_t size;
 
-	if (uap->cpusetsize < sizeof(cpuset_t) ||
-	    uap->cpusetsize > CPU_MAXSIZE / NBBY)
+	if (cpusetsize < sizeof(cpuset_t) || cpusetsize > CPU_MAXSIZE / NBBY)
 		return (ERANGE);
-	size = uap->cpusetsize;
+	size = cpusetsize;
 	mask = malloc(size, M_TEMP, M_WAITOK | M_ZERO);
-	error = cpuset_which(uap->which, uap->id, &p, &ttd, &set);
+	error = cpuset_which(which, id, &p, &ttd, &set);
 	if (error)
 		goto out;
-	switch (uap->level) {
+	switch (level) {
 	case CPU_LEVEL_ROOT:
 	case CPU_LEVEL_CPUSET:
-		switch (uap->which) {
+		switch (which) {
 		case CPU_WHICH_TID:
 		case CPU_WHICH_PID:
 			thread_lock(ttd);
@@ -1115,7 +1123,7 @@ sys_cpuset_getaffinity(struct thread *td, struct cpuset_getaffinity_args *uap)
 			error = EINVAL;
 			goto out;
 		}
-		if (uap->level == CPU_LEVEL_ROOT)
+		if (level == CPU_LEVEL_ROOT)
 			nset = cpuset_refroot(set);
 		else
 			nset = cpuset_refbase(set);
@@ -1123,7 +1131,7 @@ sys_cpuset_getaffinity(struct thread *td, struct cpuset_getaffinity_args *uap)
 		cpuset_rel(nset);
 		break;
 	case CPU_LEVEL_WHICH:
-		switch (uap->which) {
+		switch (which) {
 		case CPU_WHICH_TID:
 			thread_lock(ttd);
 			CPU_COPY(&ttd->td_cpuset->cs_mask, mask);
@@ -1141,13 +1149,13 @@ sys_cpuset_getaffinity(struct thread *td, struct cpuset_getaffinity_args *uap)
 			CPU_COPY(&set->cs_mask, mask);
 			break;
 		case CPU_WHICH_IRQ:
-			error = intr_getaffinity(uap->id, mask);
+			error = intr_getaffinity(id, mask);
 			break;
 		case CPU_WHICH_DOMAIN:
-			if (uap->id < 0 || uap->id >= MAXMEMDOM)
+			if (id < 0 || id >= MAXMEMDOM)
 				error = ESRCH;
 			else
-				CPU_COPY(&cpuset_domain[uap->id], mask);
+				CPU_COPY(&cpuset_domain[id], mask);
 			break;
 		}
 		break;
@@ -1160,7 +1168,7 @@ sys_cpuset_getaffinity(struct thread *td, struct cpuset_getaffinity_args *uap)
 	if (p)
 		PROC_UNLOCK(p);
 	if (error == 0)
-		error = copyout(mask, uap->mask, size);
+		error = copyout(mask, maskp, size);
 out:
 	free(mask, M_TEMP);
 	return (error);
@@ -1178,6 +1186,15 @@ struct cpuset_setaffinity_args {
 int
 sys_cpuset_setaffinity(struct thread *td, struct cpuset_setaffinity_args *uap)
 {
+
+	return (kern_cpuset_setaffinity(td, uap->level, uap->which,
+	    uap->id, uap->cpusetsize, uap->mask));
+}
+
+int
+kern_cpuset_setaffinity(struct thread *td, cpulevel_t level, cpuwhich_t which,
+    id_t id, size_t cpusetsize, const cpuset_t *maskp)
+{
 	struct cpuset *nset;
 	struct cpuset *set;
 	struct thread *ttd;
@@ -1185,22 +1202,21 @@ sys_cpuset_setaffinity(struct thread *td, struct cpuset_setaffinity_args *uap)
 	cpuset_t *mask;
 	int error;
 
-	if (uap->cpusetsize < sizeof(cpuset_t) ||
-	    uap->cpusetsize > CPU_MAXSIZE / NBBY)
+	if (cpusetsize < sizeof(cpuset_t) || cpusetsize > CPU_MAXSIZE / NBBY)
 		return (ERANGE);
-	mask = malloc(uap->cpusetsize, M_TEMP, M_WAITOK | M_ZERO);
-	error = copyin(uap->mask, mask, uap->cpusetsize);
+	mask = malloc(cpusetsize, M_TEMP, M_WAITOK | M_ZERO);
+	error = copyin(maskp, mask, cpusetsize);
 	if (error)
 		goto out;
 	/*
 	 * Verify that no high bits are set.
 	 */
-	if (uap->cpusetsize > sizeof(cpuset_t)) {
+	if (cpusetsize > sizeof(cpuset_t)) {
 		char *end;
 		char *cp;
 
 		end = cp = (char *)&mask->__bits;
-		end += uap->cpusetsize;
+		end += cpusetsize;
 		cp += sizeof(cpuset_t);
 		while (cp != end)
 			if (*cp++ != 0) {
@@ -1209,13 +1225,13 @@ sys_cpuset_setaffinity(struct thread *td, struct cpuset_setaffinity_args *uap)
 			}
 
 	}
-	switch (uap->level) {
+	switch (level) {
 	case CPU_LEVEL_ROOT:
 	case CPU_LEVEL_CPUSET:
-		error = cpuset_which(uap->which, uap->id, &p, &ttd, &set);
+		error = cpuset_which(which, id, &p, &ttd, &set);
 		if (error)
 			break;
-		switch (uap->which) {
+		switch (which) {
 		case CPU_WHICH_TID:
 		case CPU_WHICH_PID:
 			thread_lock(ttd);
@@ -1231,7 +1247,7 @@ sys_cpuset_setaffinity(struct thread *td, struct cpuset_setaffinity_args *uap)
 			error = EINVAL;
 			goto out;
 		}
-		if (uap->level == CPU_LEVEL_ROOT)
+		if (level == CPU_LEVEL_ROOT)
 			nset = cpuset_refroot(set);
 		else
 			nset = cpuset_refbase(set);
@@ -1240,24 +1256,23 @@ sys_cpuset_setaffinity(struct thread *td, struct cpuset_setaffinity_args *uap)
 		cpuset_rel(set);
 		break;
 	case CPU_LEVEL_WHICH:
-		switch (uap->which) {
+		switch (which) {
 		case CPU_WHICH_TID:
-			error = cpuset_setthread(uap->id, mask);
+			error = cpuset_setthread(id, mask);
 			break;
 		case CPU_WHICH_PID:
-			error = cpuset_setproc(uap->id, NULL, mask);
+			error = cpuset_setproc(id, NULL, mask);
 			break;
 		case CPU_WHICH_CPUSET:
 		case CPU_WHICH_JAIL:
-			error = cpuset_which(uap->which, uap->id, &p,
-			    &ttd, &set);
+			error = cpuset_which(which, id, &p, &ttd, &set);
 			if (error == 0) {
 				error = cpuset_modify(set, mask);
 				cpuset_rel(set);
 			}
 			break;
 		case CPU_WHICH_IRQ:
-			error = intr_setaffinity(uap->id, mask);
+			error = intr_setaffinity(id, mask);
 			break;
 		default:
 			error = EINVAL;
