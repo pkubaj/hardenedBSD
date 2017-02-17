@@ -187,7 +187,6 @@ __DEFAULT_NO_OPTIONS = \
     CLANG_EXTRAS \
     DEVD_PIE \
     DTRACE_TESTS \
-    EISA \
     FREEBSD_UPDATE \
     HESIOD \
     LIB32 \
