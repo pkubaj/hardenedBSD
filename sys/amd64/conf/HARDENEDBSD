@@ -106,6 +106,7 @@ options 	DEBUG_MEMGUARD		# enables memguard(9), a replacement allocator
 
 # Make an SMP-capable kernel by default
 options 	SMP			# Symmetric MultiProcessor Kernel
+options		EARLY_AP_STARTUP
 
 # CPU frequency control
 device		cpufreq
