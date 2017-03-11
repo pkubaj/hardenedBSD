@@ -405,7 +405,7 @@ __elfN(map_partial)(vm_map_t map, vm_object_t object, vm_ooffset_t offset,
 	 * Create the page if it doesn't exist yet. Ignore errors.
 	 */
 	vm_map_fixed(map, NULL, 0, trunc_page(start), round_page(end) -
-	    trunc_page(start), VM_PROT_ALL, VM_PROT_ALL, MAP_CHECK_EXCL);
+	    trunc_page(start), prot | VM_PROT_WRITE, VM_PROT_ALL, MAP_CHECK_EXCL);
 
 	/*
 	 * Find the page from the underlying object.
@@ -421,6 +421,11 @@ __elfN(map_partial)(vm_map_t map, vm_object_t object, vm_ooffset_t offset,
 		if (error != 0)
 			return (KERN_FAILURE);
 	}
+
+	/*
+	 * Set the requested protection once the copyout is done.
+	 */
+	vm_map_protect(map, trunc_page(start), round_page(end), prot, FALSE);
 
 	return (KERN_SUCCESS);
 }
@@ -462,8 +467,10 @@ __elfN(map_insert)(struct image_params *imgp, vm_map_t map, vm_object_t object,
 		    prot | VM_PROT_WRITE, maxprot, MAP_CHECK_EXCL);
 		if (rv != KERN_SUCCESS)
 			return (rv);
-		if (object == NULL)
+		if (object == NULL) {
+			// XXXOP? vm_map_protect(...) here? 	
 			return (KERN_SUCCESS);
+		}
 		for (; start < end; start += sz) {
 			sf = vm_imgact_map_page(object, offset);
 			if (sf == NULL)
@@ -478,7 +485,18 @@ __elfN(map_insert)(struct image_params *imgp, vm_map_t map, vm_object_t object,
 			if (error != 0)
 				return (KERN_FAILURE);
 			offset += sz;
+			/*
+			 * Set the requested protections once copyout is done.
+			 *
+			 * Optimization:
+			 *
+			 *  save the originial start address, and call
+			 *  vm_map_protect once.
+			 */
+			vm_map_protect(map, start, end, prot, FALSE);
 		}
+
+
 	} else {
 		vm_object_reference(object);
 		rv = vm_map_fixed(map, object, offset, start, end - start,
@@ -578,7 +596,7 @@ __elfN(load_section)(struct image_params *imgp, vm_ooffset_t offset,
 	/* This had damn well better be true! */
 	if (map_len != 0) {
 		rv = __elfN(map_insert)(imgp, map, NULL, 0, map_addr,
-		    map_addr + map_len, VM_PROT_ALL, VM_PROT_ALL, 0);
+		    map_addr + map_len, prot | VM_PROT_WRITE, VM_PROT_ALL, 0);
 		if (rv != KERN_SUCCESS)
 			return (EINVAL);
 	}
