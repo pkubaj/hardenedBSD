@@ -4344,9 +4344,12 @@ OLD_LIBS+=usr/lib32/libssl.so.38
 OLD_LIBS+=usr/lib32/libtls.so.10
 .endif
 
-#.if ${MK_LIBTHR} == no
-# to be filled in
-#.endif
+.if ${MK_LIBTHR} == no
+OLD_LIBS+=lib/libthr.so.3
+OLD_FILES+=usr/lib/libthr.a
+OLD_FILES+=usr/lib/libthr_p.a
+OLD_FILES+=usr/share/man/man3/libthr.3.gz
+.endif
 
 .if ${MK_LLDB} == no
 OLD_FILES+=usr/bin/lldb
