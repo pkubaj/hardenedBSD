@@ -586,6 +586,7 @@ struct proc {
 	vm_offset_t	p_psstrings;	/* (b) Process psstrings address. */
 	vm_offset_t	p_shared_page_base;	/* (c) Address of shared page. */
 	vm_offset_t	p_sigcode_base;	/* (c) Address of sigcode. */
+
 /* End area that is copied on creation. */
 #define	p_endcopy	p_xstat
 
@@ -629,6 +630,8 @@ struct proc {
 	struct pgrp	*p_pgrp;	/* (c + e) Pointer to process group. */
 	struct filemon	*p_filemon;	/* (c) filemon-specific data. */
 	u_int		p_ptevents;	/* (c) ptrace() event mask. */
+	uint16_t	p_elf_machine;	/* (x) ELF machine type */
+	uint64_t	p_elf_flags;	/* (x) ELF flags */
 };
 
 #define	p_session	p_pgrp->pg_session
