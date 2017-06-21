@@ -16,13 +16,9 @@ MISRCS+=bcmp.c bcopy.c bzero.c explicit_bzero.c \
 	strcspn.c strdup.c strerror.c strlcat.c strlcpy.c strlen.c strmode.c \
 	strncat.c strncmp.c strncpy.c strndup.c strnlen.c strnstr.c \
 	strpbrk.c strrchr.c strsep.c strsignal.c strspn.c strstr.c strtok.c \
-<<<<<<< HEAD
-	strxfrm.c swab.c timingsafe_bcmp.c timingsafe_memcmp.c \
-=======
 	strxfrm.c swab.c \
 	timingsafe_bcmp.c \
 	timingsafe_memcmp.c \
->>>>>>> origin/freebsd/11-stable/master
 	wcpcpy.c wcpncpy.c wcscasecmp.c wcscat.c \
 	wcschr.c wcscmp.c wcscoll.c wcscpy.c wcscspn.c wcsdup.c \
 	wcslcat.c wcslcpy.c wcslen.c wcsncasecmp.c wcsncat.c wcsncmp.c \
@@ -42,12 +38,8 @@ MAN+=	bcmp.3 bcopy.3 bstring.3 bzero.3 ffs.3 index.3 memccpy.3 memchr.3 \
 	strchr.3 strcmp.3 strcoll.3 strcpy.3 strdup.3 strerror.3 \
 	string.3 strlcpy.3 strlen.3 strmode.3 strpbrk.3 strsep.3 \
 	strspn.3 strstr.3 strtok.3 strxfrm.3 swab.3 \
-<<<<<<< HEAD
-	timingsafe_bcmp.3 wcscoll.3 wcstok.3 \
-=======
 	timingsafe_bcmp.3 \
 	wcscoll.3 wcstok.3 \
->>>>>>> origin/freebsd/11-stable/master
 	wcswidth.3 wcsxfrm.3 wmemchr.3
 
 MLINKS+=bzero.3 explicit_bzero.3
