@@ -309,21 +309,11 @@ while :; do
 	ukrainian_koi8_u)        keymap_to_set="ua.koi8-u"             ;;
 	ukrainian_koi8_u_koi8_r) keymap_to_set="ua.koi8-u.shift.alt"   ;;
 	usa_capslock_ctrl)
-<<<<<<< HEAD
-				 if [ $(sysctl -n kern.vty) -ne "vt" ];
-				 then
-				 	 keymap_to_set="us.pc-ctrl"
-				 else
-				 	 keymap_to_set="us.ctrl"
-				 fi
-				 ;;
-=======
 		case "$( sysctl -n kern.vty )" in
 		vt)              keymap_to_set="us.ctrl"               ;;
 		*)               keymap_to_set="us.pc-ctrl"            ;;
 		esac
 		;;
->>>>>>> origin/hardened/current/master
 	usa_dvorak)              keymap_to_set="us.dvorak"             ;;
 	usa_dvorak_left)         keymap_to_set="us.dvorakl"            ;;
 	usa_dvorak_right)        keymap_to_set="us.dvorakr"            ;;

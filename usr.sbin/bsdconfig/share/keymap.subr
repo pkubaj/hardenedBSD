@@ -39,18 +39,10 @@ f_include $BSDCFG_SHARE/struct.subr
 # Defaults taken from usr.sbin/kbdmap/kbdmap.h
 #
 : ${DEFAULT_LANG:=en}
-<<<<<<< HEAD
-if [ $(sysctl -n kern.vty) -ne "vt" ]; then
-	: ${DEFAULT_KEYMAP_DIR:=/usr/share/syscons/keymaps}
-else
-	: ${DEFAULT_KEYMAP_DIR:=/usr/share/vt/keymaps}
-fi
-=======
 case "$( sysctl -n kern.vty )" in
 vt)	: ${DEFAULT_KEYMAP_DIR:=/usr/share/vt/keymaps}		;;
 *)	: ${DEFAULT_KEYMAP_DIR:=/usr/share/syscons/keymaps}	;;
 esac
->>>>>>> origin/hardened/current/master
 
 ############################################################ GLOBALS
 
