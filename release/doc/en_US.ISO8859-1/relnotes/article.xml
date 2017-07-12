@@ -252,6 +252,18 @@
 	enumerates primes beyond
 	<literal>3825123056546413050</literal>, up to a new limit of
 	<literal>2^64 - 1</literal>.</para>
+
+      <para revision="320654">The &man.rcp.1;, &man.rlogin.1;,
+	&man.rsh.1;, &man.ruptime.1;, &man.rwho.1;, &man.rlogind.8;,
+	&man.rshd.8;, and &man.rwhod.8; utilities have been marked as
+	deprecated, and planned for removal in
+	&os;&nbsp;12.0-RELEASE.</para>
+
+      <para revision="320874">The &man.gdb.1; and &man.kgdb.1;
+	utilities have been marked as deprecated, and planned for
+	removal from the base system in the future.  A newer version
+	is available in the <filename
+	  role="package">devel/gdb</filename> port.</para>
     </sect2>
 
     <sect2 xml:id="userland-contrib">
@@ -779,6 +791,11 @@
       <para revision="312790">The &os; virtual machines provided on
 	Amazon&reg; EC2&trade; now enable <acronym>IPv6</acronym> by
 	default.</para>
+
+      <para revision="320760" contrib="sponsor" sponsor="&amazon;">The
+	&man.ena.4; driver has been added, providing support for
+	&quot;next generation&quot; Enhanced Networking on the
+	Amazon&reg;&nbsp;EC2&trade; platform.</para>
     </sect2>
 
     <sect2 xml:id="hardware-arm">
@@ -794,12 +811,6 @@
 
     <para>This section covers changes and additions to file systems
       and other storage subsystems, both local and networked.</para>
-
-    <sect2 xml:id="storage-general">
-      <title>General Storage</title>
-
-      <para>&nbsp;</para>
-    </sect2>
 
     <sect2 xml:id="storage-net">
       <title>Networked Storage</title>
@@ -828,12 +839,6 @@
 	&man.loader.conf.5;, whereas
 	<literal>vfs.zfs.debug_flags</literal> could not.</para>
     </sect2>
-
-    <sect2 xml:id="storage-geom">
-      <title><literal>geom(4)</literal></title>
-
-      <para>&nbsp;</para>
-    </sect2>
   </sect1>
 
   <sect1 xml:id="boot">
@@ -853,12 +858,6 @@
 	<acronym>EFI</acronym> loader has been updated to support
 	<acronym>TFTPFS</acronym>, providing netboot support without
 	requiring an <acronym>NFS</acronym> server.</para>
-    </sect2>
-
-    <sect2 xml:id="boot-menu">
-      <title>Boot Menu Changes</title>
-
-      <para>&nbsp;</para>
     </sect2>
   </sect1>
 
