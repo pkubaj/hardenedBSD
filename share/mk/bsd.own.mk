@@ -289,6 +289,7 @@ __DEFAULT_YES_OPTIONS = \
     CRYPT \
     CTM \
     CXX \
+    DIALOG \
     DICT \
     DYNAMICROOT \
     ED_CRYPTO \
@@ -555,6 +556,10 @@ MK_KERBEROS:=	no
 .if ${MK_CXX} == "no"
 MK_CLANG:=	no
 MK_GROFF:=	no
+.endif
+
+.if ${MK_DIALOG} == "no"
+MK_BSDINSTALL:=	no
 .endif
 
 .if ${MK_MAIL} == "no"
