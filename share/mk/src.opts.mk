@@ -124,6 +124,7 @@ __DEFAULT_YES_OPTIONS = \
     LEGACY_CONSOLE \
     LIBPTHREAD \
     LIBTHR \
+    LIBRESSL \
     LOCALES \
     LOCATE \
     LPR \
