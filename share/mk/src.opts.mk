@@ -462,6 +462,10 @@ MK_SAFESTACK:=	no
 MK_CFI:=	no
 .endif
 
+.if ${MK_LIBRESSL} == "no"
+MK_OPENNTPD:=	no
+.endif
+
 .if ${MK_OPENNTPD} != "no"
 MK_NTP:=	no
 .endif
