@@ -1,4 +1,6 @@
 /*-
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
  * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -1527,18 +1529,18 @@ vm_map_find(vm_map_t map, vm_object_t object, vm_ooffset_t offset,
 	} else
 		alignment = 0;
 	initial_addr = *addr;
+	vm_map_lock(map);
 again:
 	start = initial_addr;
-	vm_map_lock(map);
 	do {
 		if (find_space != VMFS_NO_SPACE) {
 			if (vm_map_findspace(map, start, length, addr) ||
 			    (max_addr != 0 && *addr + length > max_addr)) {
-				vm_map_unlock(map);
 				if (find_space == VMFS_OPTIMAL_SPACE) {
 					find_space = VMFS_ANY_SPACE;
 					goto again;
 				}
+				vm_map_unlock(map);
 				return (KERN_NO_SPACE);
 			}
 			switch (find_space) {
