@@ -344,10 +344,9 @@ pfind(pid_t pid)
 {
 	struct proc *p;
 
-<<<<<<< HEAD
 	if (pid > PID_MAX)
 		return (NULL);
-=======
+
 	p = curproc;
 	if (p->p_pid == pid) {
 		PROC_LOCK(p);
