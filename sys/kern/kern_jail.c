@@ -1344,7 +1344,7 @@ kern_jail_set(struct thread *td, struct uio *optuio, int flags)
 		error = vfs_copyopt(opts, "hbsdulog", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.log.log = pax_flag;
+			pr->pr_hbsd.log.ulog = pax_flag;
 #endif
 
 		mtx_lock(&pr->pr_mtx);
