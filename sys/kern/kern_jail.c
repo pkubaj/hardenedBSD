@@ -1309,42 +1309,59 @@ kern_jail_set(struct thread *td, struct uio *optuio, int flags)
 		 * overriding after initialization.
 		 */
 		pax_init_prison(pr);
+#ifdef PAX_ASLR
 		error = vfs_copyopt(opts, "aslr", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.aslr.status = pax_flag;
+			pr->pr_hbsd.aslr.status =
+			    pax_aslr_validate_flags(pax_flag);
 		error = vfs_copyopt(opts, "aslrcompat", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.aslr.compat_status = pax_flag;
+			pr->pr_hbsd.aslr.compat_status = 
+			    pax_aslr_validate_flags(pax_flag);
 		error = vfs_copyopt(opts, "disallowmap32bit", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.aslr.disallow_map32bit_status = pax_flag;
+			pr->pr_hbsd.aslr.disallow_map32bit_status =
+			    pax_aslr_validate_flags(pax_flag);
+#endif
+#ifdef PAX_NOEXEC
 		error = vfs_copyopt(opts, "pageexec", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.noexec.pageexec_status = pax_flag;
+			pr->pr_hbsd.noexec.pageexec_status =
+			    pax_noexec_validate_flags(pax_flag);
 		error = vfs_copyopt(opts, "mprotect", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.noexec.mprotect_status = pax_flag;
+			pr->pr_hbsd.noexec.mprotect_status =
+			    pax_noexec_validate_flags(pax_flag);
+#endif
+#ifdef PAX_SEGVGUARD
 		error = vfs_copyopt(opts, "segvguard", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.segvguard.status = pax_flag;
+			pr->pr_hbsd.segvguard.status =
+			    pax_segvguard_validate_flags(pax_flag);
+#endif
+#ifdef PAX_HARDENING
 		error = vfs_copyopt(opts, "procfsharden", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.hardening.procfs_harden = pax_flag;
+			pr->pr_hbsd.hardening.procfs_harden =
+			    pax_procfs_harden_validate_flags(pax_flag);
+#endif
 		error = vfs_copyopt(opts, "hbsdlog", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.log.log = pax_flag;
+			pr->pr_hbsd.log.log =
+			    pax_log_validate_flags(pax_flag);
 		error = vfs_copyopt(opts, "hbsdulog", &pax_flag,
 		    sizeof(pax_flag));
 		if (error != ENOENT)
-			pr->pr_hbsd.log.ulog = pax_flag;
+			pr->pr_hbsd.log.ulog =
+			    pax_log_validate_flags(pax_flag);
 #endif
 
 		mtx_lock(&pr->pr_mtx);
