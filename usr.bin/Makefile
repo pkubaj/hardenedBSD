@@ -148,6 +148,7 @@ SUBDIR=	alias \
 	split \
 	stat \
 	stdbuf \
+	strings \
 	su \
 	systat \
 	tabs \
@@ -287,7 +288,6 @@ SUBDIR.${MK_TOOLCHAIN}+=	readelf
 SUBDIR.${MK_TOOLCHAIN}+=	rpcgen
 SUBDIR.${MK_TOOLCHAIN}+=	unifdef
 SUBDIR.${MK_TOOLCHAIN}+=	size
-SUBDIR.${MK_TOOLCHAIN}+=	strings
 .if ${MK_LINT} != "no"
 SUBDIR.${MK_TOOLCHAIN}+=	xlint
 .endif
