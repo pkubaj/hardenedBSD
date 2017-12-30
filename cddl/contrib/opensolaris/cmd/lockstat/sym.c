@@ -48,7 +48,6 @@
 #include <kstat.h>
 #else
 #include <sys/elf.h>
-#include <sys/ksyms.h>
 #endif
 #include <sys/cpuvar.h>
 
@@ -172,41 +171,13 @@ symtab_init(void)
 	int		fd;
 	int		i;
 	int		strindex = -1;
-#ifndef illumos
-	void		*ksyms;
-	size_t		sz;
-#endif
 
 	if ((fd = open("/dev/ksyms", O_RDONLY)) == -1)
 		return (-1);
 
-#ifdef illumos
 	(void) elf_version(EV_CURRENT);
 
 	elf = elf_begin(fd, ELF_C_READ, NULL);
-#else
-	/* 
-	 * XXX - libelf needs to be fixed so it will work with
-	 * non 'ordinary' files like /dev/ksyms.  The following
-	 * is a work around for now.
-	 */ 
-	if (elf_version(EV_CURRENT) == EV_NONE) {
-		close(fd);
-		return (-1);
-	}
-	if (ioctl(fd, KIOCGSIZE, &sz) < 0) {
-		close(fd);
-		return (-1);
-	}
-	if (ioctl(fd, KIOCGADDR, &ksyms) < 0) {
-		close(fd);
-		return (-1);
-	}
-	if ((elf = elf_memory(ksyms, sz)) == NULL) {
-		close(fd);
-		return (-1);
-	}
-#endif 
 
 	for (cnt = 1; (scn = elf_nextscn(elf, scn)) != NULL; cnt++) {
 		Shdr *shdr = elf_getshdr(scn);
