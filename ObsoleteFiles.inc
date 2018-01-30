@@ -38,11 +38,8 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
-<<<<<<< HEAD
-=======
 # 20171204: Move fdformat man page from volume 1 to volume 8.
 OLD_FILES+=usr/share/man/man1/fdformat.1.gz
->>>>>>> origin/hardened/10-stable/master
 # 20170802: ksyms(4) ioctl interface was removed
 OLD_FILES+=usr/include/sys/ksyms.h
 # 20170620: remove stale manpage
