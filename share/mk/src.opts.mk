@@ -122,6 +122,7 @@ __DEFAULT_YES_OPTIONS = \
     LIBPTHREAD \
     LIBRESSL \
     LIBTHR \
+    LLVM_COV \
     LOCALES \
     LOCATE \
     LPR \
@@ -467,6 +468,7 @@ MK_LLDB:=	no
 .if ${MK_CLANG} == "no"
 MK_CLANG_EXTRAS:= no
 MK_CLANG_FULL:= no
+MK_LLVM_COV:= no
 MK_SAFESTACK:=	no
 .endif
 
@@ -486,6 +488,7 @@ MK_NTP:=	no
 .if ${MK_NTP} != "no"
 MK_OPENNTPD:=	no
 .endif
+
 
 #
 # MK_* options whose default value depends on another option.
