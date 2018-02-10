@@ -251,7 +251,7 @@ prison0_init(void)
 	strlcpy(prison0.pr_osrelease, osrelease, sizeof(prison0.pr_osrelease));
 
 #ifdef PAX
-	pax_init_prison(&prison0);
+	(void)pax_init_prison(&prison0, NULL);
 #endif
 }
 
@@ -1304,7 +1304,11 @@ kern_jail_set(struct thread *td, struct uio *optuio, int flags)
 		}
 
 #ifdef PAX
-		pax_init_prison(pr);
+		if (!pax_init_prison(pr, opts)) {
+			error = EINVAL;
+			prison_deref(pr, PD_LIST_XLOCKED);
+			goto done_releroot;
+		}
 #endif
 
 #ifdef PTRACE_HARDENING_PRISON
