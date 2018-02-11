@@ -194,6 +194,7 @@ __DEFAULT_NO_OPTIONS = \
     LIB32 \
     LIBSOFT \
     LINT \
+    LOADER_FORCE_LE \
     NAND \
     OFED \
     OPENLDAP \
