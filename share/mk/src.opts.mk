@@ -190,6 +190,7 @@ __DEFAULT_NO_OPTIONS = \
     LIBSOFT \
     LOADER_FIREWIRE \
     LOADER_FORCE_LE \
+    LOADER_LUA \
     NAND \
     NTP \
     OFED \
