@@ -117,12 +117,11 @@ struct prison prison0 = {
 };
 MTX_SYSINIT(prison0, &prison0.pr_mtx, "jail mutex", MTX_DEF);
 
-<<<<<<< HEAD
 #ifdef PTRACE_HARDENING
 SYSINIT(ptrace, SI_SUB_PTRACE_HARDENING, SI_ORDER_MIDDLE,
 	ptrace_hardening_init_prison, (void *) &prison0);
 #endif
-=======
+
 struct bool_flags {
 	const char	*name;
 	const char	*noname;
@@ -133,7 +132,6 @@ struct jailsys_flags {
 	unsigned	 disable;
 	unsigned	 new;
 };
->>>>>>> origin/hardened/current/master
 
 /* allprison, allprison_racct and lastprid are protected by allprison_lock. */
 struct	sx allprison_lock;
