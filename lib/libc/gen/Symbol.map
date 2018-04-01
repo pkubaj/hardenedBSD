@@ -410,6 +410,7 @@ FBSD_1.5 {
 	fts_set;
 	fts_set_clientptr;
 	ftw;
+	getentropy;
 	getmntinfo;
 	glob;
 	globfree;
