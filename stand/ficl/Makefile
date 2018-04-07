@@ -16,7 +16,6 @@ CLEANFILES+=	softcore.c testmain testmain.o
 NOPIE=		yes
 .endif
 
-.include <bsd.stand.mk>
 .ifmake testmain
 CFLAGS=	-DTESTMAIN -D_TESTMAIN
 CFLAGS+=	-I${FICLSRC} -I${FICLSRC}/${FICL_CPUARCH} -I${LDRSRC}
