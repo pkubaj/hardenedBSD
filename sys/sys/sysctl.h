@@ -1011,9 +1011,6 @@ SYSCTL_DECL(_regression);
 SYSCTL_DECL(_security);
 SYSCTL_DECL(_security_bsd);
 SYSCTL_DECL(_hardening);
-#ifdef EXT_RESOURCES
-SYSCTL_DECL(_clock);
-#endif
 
 extern char	machine[];
 extern char	osrelease[];
