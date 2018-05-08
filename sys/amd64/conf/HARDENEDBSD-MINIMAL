@@ -1,4 +1,4 @@
-#                                                                                                                                                                                                                                      [98/515]
+#
 # HARDENEDBSD-MINIMAL -- Mostly Minimal HardenedBSD kernel configuration file for FreeBSD/amd64
 #
 # Many definitions of minimal are possible. The one this file follows is
