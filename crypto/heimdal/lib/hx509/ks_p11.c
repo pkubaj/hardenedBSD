@@ -98,6 +98,28 @@ struct p11_rsa {
     CK_OBJECT_HANDLE public_key;
 };
 
+#ifdef LIBRESSL_VERSION_NUMBER
+static int RSA_meth_set_init(RSA_METHOD *meth, int (*init) (RSA *rsa))
+{
+	meth->init = init;
+	return 1;
+}
+
+static int RSA_meth_set_pub_dec(RSA_METHOD *meth,
+				int (*pub_dec) (int flen, const unsigned char *from, unsigned char *to, RSA *rsa, int padding))
+{
+	meth->rsa_pub_dec = pub_dec;
+	return 1;
+}
+
+static int RSA_meth_set_pub_enc(RSA_METHOD *meth,
+				int (*pub_dec) (int flen, const unsigned char *from, unsigned char *to, RSA *rsa, int padding))
+{
+	meth->rsa_pub_enc = pub_enc;
+	return 1;
+}
+#endif
+
 static int
 p11_rsa_public_encrypt(int flen,
 		       const unsigned char *from,
