@@ -182,8 +182,10 @@
 /* Define to 1 if you have the `EVP_cleanup' function. */
 /* #undef HAVE_EVP_CLEANUP */
 
+#ifndef HAVE_LIBRESSL
 /* Define to 1 if you have the `EVP_DigestVerify' function. */
 #define HAVE_EVP_DIGESTVERIFY 1
+#endif
 
 /* Define to 1 if you have the `EVP_dss1' function. */
 /* #undef HAVE_EVP_DSS1 */
@@ -452,6 +454,7 @@
 /* Define if you have the SSL libraries installed. */
 #define HAVE_SSL /**/
 
+#ifndef HAVE_LIBRESSL
 /* Define to 1 if you have the `SSL_CTX_set_security_level' function. */
 #define HAVE_SSL_CTX_SET_SECURITY_LEVEL 1
 
@@ -460,6 +463,7 @@
 
 /* Define to 1 if you have the `SSL_set1_host' function. */
 #define HAVE_SSL_SET1_HOST 1
+#endif
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #define HAVE_STDARG_H 1
